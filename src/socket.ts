@@ -1,6 +1,7 @@
 import type { Server as httpServer } from "http";
 import { Server } from "socket.io";
 import { joinRoom } from "./socket/event/joinRoom";
+import { bid } from "./socket/event/bid";
 
 let io: Server;
 
@@ -28,6 +29,9 @@ export function setupSocket(httpServer: httpServer) {
             joinRoom(socket, roomId, io);
         });
 
+        socket.on("bid", (roomId, bidAmount) => {
+            bid(socket, roomId, bidAmount, io);
+        });
         socket.on("disconnect", (reason) => {
             console.log(`User ${socket.id} disconnected: ${reason}`);
         });
