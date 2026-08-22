@@ -7,7 +7,8 @@
     "start": "bun --hot run src/index.ts",
     "prisma:generate": "bunx prisma generate",
     "prisma:migrate": "bunx prisma migrate dev",
-    "prisma:studio": "bunx prisma studio"
+    "prisma:studio": "bunx prisma studio",
+    "prisma:seed": "bunx prisma db seed"
   },
   "devDependencies": {
     "@types/bun": "latest",
