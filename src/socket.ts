@@ -17,21 +17,20 @@ export function setupSocket(httpServer: httpServer) {
     });
 
     io.on("connection", (socket) => {
-        console.log(`A user connected: ${socket.id}`);
-
         socket.on("error", (err) => {
             console.error(`Socket error for ${socket.id}: ${err.message}`);
         });
 
-        io.emit("message", "Welcome to the server!");
+        socket.emit("message", "Welcome to the server!");
 
         socket.on("joinRoom", (roomId) => {
             joinRoom(socket, roomId, io);
         });
 
-        socket.on("bid", (roomId, bidAmount) => {
-            bid(socket, roomId, bidAmount, io);
+        socket.on("bid", (userId: string, roomId: string, bidAmount: number) => {
+            bid(socket, userId, roomId, bidAmount, io);
         });
+
         socket.on("disconnect", (reason) => {
             console.log(`User ${socket.id} disconnected: ${reason}`);
         });

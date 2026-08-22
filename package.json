@@ -8,21 +8,25 @@
     "prisma:generate": "bunx prisma generate",
     "prisma:migrate": "bunx prisma migrate dev",
     "prisma:studio": "bunx prisma studio",
-    "prisma:seed": "bunx prisma db seed"
+    "prisma:seed": "bunx prisma db seed",
+    "test:concurrency": "bun run test/concurrency.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "prisma": "^7.9.1"
+    "prisma": "^7.9.1",
+    "socket.io-client": "^4.8.3"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
+    "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/adapter-libsql": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

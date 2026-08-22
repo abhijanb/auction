@@ -1,10 +1,9 @@
 import { PrismaClient } from "../generated/prisma/client.ts";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
+import path from "path";
 
-const libsql = createClient({ url: process.env["DATABASE_URL"] ?? "file:./prisma/dev.db" });
-const adapter = new PrismaLibSql(libsql);
-
+const dbPath = path.join(process.cwd(), "dev.db");
+const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
 const prisma = new PrismaClient({ adapter });
 
 export default prisma;
