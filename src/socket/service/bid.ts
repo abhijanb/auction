@@ -1,56 +1,23 @@
 import prisma from "../../lib/prisma";
 
-// mutex to ensure that only one bid is processed at a time
-// because sqlite is being used and it does not support concurrent writes, we need to ensure that only one bid is processed at a time. This is done using a simple mutex implementation.
-
-// if process is already processing a bid, we will queue the next bid and process it after the current bid is finished. This ensures that bids are processed in order and that the database is not corrupted by concurrent writes.
-let processing = false;
-const queue: (() => void)[] = [];
-
-async function acquire() {
-    if (!processing) {
-        processing = true;
-        return;
-    }
-    return new Promise<void>((resolve) => {
-        queue.push(resolve);
-    });
-}
-
-function release() {
-    const next = queue.shift();
-    if (next) {
-        next();
-    } else {
-        processing = false;
-    }
-}
-
 export default async function bidService(amount: number, userId: string, auctionId: string) {
-    await acquire();
-    try {
-        const auction = await prisma.auction.findUniqueOrThrow({ where: { id: auctionId } });
+    return await prisma.$transaction(async (tx) => {
+        const auction = await tx.auction.findUnique({ where: { id: auctionId } });
+        if (!auction) throw new Error("Auction not found");
+        if (auction.status !== "active") throw new Error("Auction is not active");
 
-        if (auction.status !== "active") {
-            throw new Error("Auction is not active");
-        }
-
-        const minBid = auction.currentBid ?? auction.startingBid;
-        if (amount <= minBid) {
-            throw new Error(`Bid must be higher than current bid of ${minBid}`);
-        }
-
-        const result = await prisma.bid.create({
-            data: { amount, userId, auctionId },
-        });
-
-        await prisma.auction.update({
-            where: { id: auctionId },
+        const updated = await tx.auction.updateMany({
+            where: {
+                id: auctionId,
+                OR: [{ currentBid: null }, { currentBid: { lt: amount } }],
+            },
             data: { currentBid: amount },
         });
 
-        return result;
-    } finally {
-        release();
-    }
+        if (updated.count === 0) {
+            throw new Error(`Bid must be higher than current bid of ${auction.currentBid ?? auction.startingBid}`);
+        }
+
+        return await tx.bid.create({ data: { amount, userId, auctionId } });
+    });
 }
